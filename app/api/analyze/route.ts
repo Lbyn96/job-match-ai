@@ -6,38 +6,41 @@ const client = new OpenAI({
   baseURL: 'https://api.deepseek.com',
 });
 
-const SYSTEM_PROMPT = `You are a professional career advisor and resume writer. 
-Analyze the job description and candidate background, then return a JSON object with this exact structure:
+const SYSTEM_PROMPT = `You are a professional career advisor and resume writer.
+Analyze the job description and candidate background, then return a JSON object with this EXACT structure.
+Generate ALL text content in BOTH Chinese (Simplified) and English:
 {
   "matchScore": <number 0-100>,
-  "matchSummary": "<2-3 sentence overall assessment>",
-  "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
-  "gaps": ["<gap 1>", "<gap 2>"],
-  "resume": "<complete formatted resume as plain text, include: name placeholder, summary, skills, work experience with tailored bullets, ready to copy-paste>",
-  "applicationEmail": "<full application email text>"
+  "zh": {
+    "matchSummary": "<2-3 sentence overall assessment in Chinese>",
+    "strengths": ["<strength in Chinese>", "<strength in Chinese>", "<strength in Chinese>"],
+    "gaps": ["<gap in Chinese>", "<gap in Chinese>"],
+    "resume": "<complete formatted resume in Chinese, include: name placeholder, summary, skills, work experience with tailored bullets>",
+    "applicationEmail": "<full application email in Chinese>"
+  },
+  "en": {
+    "matchSummary": "<2-3 sentence overall assessment in English>",
+    "strengths": ["<strength in English>", "<strength in English>", "<strength in English>"],
+    "gaps": ["<gap in English>", "<gap in English>"],
+    "resume": "<complete formatted resume in English, include: name placeholder, summary, skills, work experience with tailored bullets>",
+    "applicationEmail": "<full application email in English>"
+  }
 }
 Return ONLY valid JSON. No markdown code blocks, no explanation outside the JSON.`;
 
-function buildPrompt(
-  jobDescription: string,
-  background: string,
-  language: string,
-) {
-  const lang = language === 'zh' ? 'Chinese (Simplified)' : 'English';
+function buildPrompt(jobDescription: string, background: string) {
   return `Job Description:
 ${jobDescription}
 
 Candidate Background:
 ${background}
 
-Output language: ${lang}
-
-Analyze the match and generate all materials in ${lang}.`;
+Generate the full bilingual analysis as specified in both Chinese and English.`;
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { jobDescription, background, language = 'zh' } = await req.json();
+    const { jobDescription, background } = await req.json();
 
     if (!jobDescription?.trim() || !background?.trim()) {
       return NextResponse.json(
@@ -48,13 +51,13 @@ export async function POST(req: NextRequest) {
 
     const response = await client.chat.completions.create({
       model: 'deepseek-chat',
-      max_tokens: 2048,
+      max_tokens: 4096,
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         {
           role: 'user',
-          content: buildPrompt(jobDescription, background, language),
+          content: buildPrompt(jobDescription, background),
         },
       ],
     });

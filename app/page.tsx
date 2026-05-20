@@ -13,7 +13,11 @@ export default function Home() {
 
   const handleSubmit = async () => {
     if (!jobDescription.trim() || !background.trim()) {
-      setError('请填写职位描述和个人背景');
+      setError(
+        language === 'zh'
+          ? '请填写职位描述和个人背景'
+          : 'Please fill in the job description and your background',
+      );
       return;
     }
     setError('');
@@ -24,7 +28,7 @@ export default function Home() {
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobDescription, background, language }),
+        body: JSON.stringify({ jobDescription, background }),
       });
       if (!res.ok) throw new Error('分析失败，请重试');
       const data = await res.json();
@@ -128,7 +132,7 @@ export default function Home() {
         {/* Right — Results */}
         <div className="h-full overflow-y-auto">
           {result ? (
-            <ResultsPanel result={result} />
+            <ResultsPanel result={result} language={language} />
           ) : (
             <div className="card h-full flex flex-col items-center justify-center gap-3 text-center">
               <div className="w-12 h-12 rounded-2xl bg-[#1a1a28] flex items-center justify-center text-2xl">
