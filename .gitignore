@@ -1,4 +1,4 @@
+/.env.local
 /.env.local.example
 node_modules
 .next
-.env.local
