@@ -65,9 +65,26 @@ export async function POST(req: NextRequest) {
     const text = response.choices[0].message.content ?? '';
     const result = JSON.parse(text);
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: 'Analysis failed' }, { status: 500 });
   }
+}
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
 }
